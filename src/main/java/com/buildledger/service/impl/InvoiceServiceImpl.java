@@ -39,7 +39,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .date(request.getDate())
                 .dueDate(request.getDueDate())
                 .description(request.getDescription())
-                .status(InvoiceStatus.SUBMITTED)
+                .status(InvoiceStatus.UNDER_REVIEW)
                 .build();
 
         return mapToResponse(invoiceRepository.save(invoice));
@@ -75,7 +75,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse approveInvoice(Long invoiceId) {
         log.info("Approving invoice {}", invoiceId);
         Invoice invoice = findById(invoiceId);
-        if (invoice.getStatus() != InvoiceStatus.SUBMITTED && invoice.getStatus() != InvoiceStatus.UNDER_REVIEW) {
+        if (invoice.getStatus() != InvoiceStatus.UNDER_REVIEW && invoice.getStatus() != InvoiceStatus.UNDER_REVIEW) {
             throw new BadRequestException("Invoice can only be approved when in SUBMITTED or UNDER_REVIEW status. Current: " + invoice.getStatus());
         }
         invoice.setStatus(InvoiceStatus.APPROVED);
@@ -86,7 +86,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse rejectInvoice(Long invoiceId, String reason) {
         log.info("Rejecting invoice {}", invoiceId);
         Invoice invoice = findById(invoiceId);
-        if (invoice.getStatus() != InvoiceStatus.SUBMITTED && invoice.getStatus() != InvoiceStatus.UNDER_REVIEW) {
+        if (invoice.getStatus() != InvoiceStatus.UNDER_REVIEW && invoice.getStatus() != InvoiceStatus.UNDER_REVIEW) {
             throw new BadRequestException("Invoice can only be rejected when in SUBMITTED or UNDER_REVIEW status. Current: " + invoice.getStatus());
         }
         invoice.setStatus(InvoiceStatus.REJECTED);

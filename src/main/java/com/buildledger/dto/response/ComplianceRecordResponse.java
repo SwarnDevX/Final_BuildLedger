@@ -1,5 +1,6 @@
 package com.buildledger.dto.response;
 
+import com.buildledger.enums.ComplianceStatus;
 import com.buildledger.enums.ComplianceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,5 +17,6 @@ public class ComplianceRecordResponse {
     private String result;
     private LocalDate date;
     private String notes;
+    private ComplianceStatus status;
     private LocalDateTime createdAt;
 }

@@ -1,2 +1,2 @@
 package com.buildledger.enums;
-public enum InvoiceStatus { SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, PAID }
+public enum InvoiceStatus {  UNDER_REVIEW, APPROVED, REJECTED, PAID }

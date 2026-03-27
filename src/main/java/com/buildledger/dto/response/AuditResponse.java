@@ -16,6 +16,7 @@ public class AuditResponse {
     private String scope;
     private String findings;
     private LocalDate date;
+    private LocalDate auditDate;
     private AuditStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

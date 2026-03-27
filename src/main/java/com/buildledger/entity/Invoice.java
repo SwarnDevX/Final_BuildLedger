@@ -46,7 +46,7 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
-    private InvoiceStatus status = InvoiceStatus.SUBMITTED;
+    private InvoiceStatus status = InvoiceStatus.UNDER_REVIEW;
 
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;

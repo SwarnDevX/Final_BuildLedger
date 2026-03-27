@@ -9,6 +9,8 @@ import com.buildledger.entity.ComplianceRecord;
 import com.buildledger.entity.Contract;
 import com.buildledger.entity.User;
 import com.buildledger.enums.AuditStatus;
+import com.buildledger.enums.ComplianceStatus;
+import com.buildledger.exception.InvalidStatusTransitionException;
 import com.buildledger.exception.ResourceNotFoundException;
 import com.buildledger.repository.AuditRepository;
 import com.buildledger.repository.ComplianceRecordRepository;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +49,7 @@ public class ComplianceServiceImpl implements ComplianceService {
                 .result(request.getResult())
                 .date(request.getDate())
                 .notes(request.getNotes())
+                .status(ComplianceStatus.PENDING)   // always starts as pending
                 .build();
 
         return mapRecordToResponse(complianceRecordRepository.save(record));
@@ -67,53 +71,29 @@ public class ComplianceServiceImpl implements ComplianceService {
     }
 
     @Override
+    public ComplianceRecordResponse updateComplianceRecordStatus(Long complianceId, ComplianceStatus newStatus) {
+        log.info("Updating compliance record {} status to {}", complianceId, newStatus);
+
+        ComplianceRecord record = complianceRecordRepository.findById(complianceId)
+                .orElseThrow(() -> new ResourceNotFoundException("ComplianceRecord", "id", complianceId));
+
+        ComplianceStatus currentStatus = record.getStatus();
+
+        if (!currentStatus.canTransitionTo(newStatus)) {
+            throw new InvalidStatusTransitionException(
+                    currentStatus.name(), newStatus.name()
+            );
+        }
+
+        record.setStatus(newStatus);
+        return mapRecordToResponse(complianceRecordRepository.save(record));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<ComplianceRecordResponse> getComplianceRecordsByContract(Long contractId) {
         return complianceRecordRepository.findByContractContractId(contractId).stream()
                 .map(this::mapRecordToResponse).collect(Collectors.toList());
-    }
-
-    @Override
-    public AuditResponse createAudit(AuditRequest request, String officerUsername) {
-        log.info("Creating audit by officer: {}", officerUsername);
-        User officer = userRepository.findByUsername(officerUsername)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", officerUsername));
-
-        Audit audit = Audit.builder()
-                .complianceOfficer(officer)
-                .scope(request.getScope())
-                .findings(request.getFindings())
-                .date(request.getDate())
-                .status(AuditStatus.SCHEDULED)
-                .build();
-
-        return mapAuditToResponse(auditRepository.save(audit));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public AuditResponse getAuditById(Long auditId) {
-        return mapAuditToResponse(findAuditById(auditId));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<AuditResponse> getAllAudits() {
-        return auditRepository.findAll().stream().map(this::mapAuditToResponse).collect(Collectors.toList());
-    }
-
-    @Override
-    public AuditResponse updateAuditStatus(Long auditId, AuditStatus status, String findings) {
-        log.info("Updating audit {} status to {}", auditId, status);
-        Audit audit = findAuditById(auditId);
-        audit.setStatus(status);
-        if (findings != null) audit.setFindings(findings);
-        return mapAuditToResponse(auditRepository.save(audit));
-    }
-
-    private Audit findAuditById(Long auditId) {
-        return auditRepository.findById(auditId)
-                .orElseThrow(() -> new ResourceNotFoundException("Audit", "id", auditId));
     }
 
     private ComplianceRecordResponse mapRecordToResponse(ComplianceRecord r) {
@@ -124,21 +104,9 @@ public class ComplianceServiceImpl implements ComplianceService {
                 .result(r.getResult())
                 .date(r.getDate())
                 .notes(r.getNotes())
+                .status(r.getStatus())
                 .createdAt(r.getCreatedAt())
                 .build();
     }
 
-    private AuditResponse mapAuditToResponse(Audit a) {
-        return AuditResponse.builder()
-                .auditId(a.getAuditId())
-                .complianceOfficerId(a.getComplianceOfficer().getUserId())
-                .officerName(a.getComplianceOfficer().getName())
-                .scope(a.getScope())
-                .findings(a.getFindings())
-                .date(a.getDate())
-                .status(a.getStatus())
-                .createdAt(a.getCreatedAt())
-                .updatedAt(a.getUpdatedAt())
-                .build();
-    }
 }

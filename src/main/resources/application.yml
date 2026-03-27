@@ -14,9 +14,9 @@ spring:
       max-request-size: 12MB
 
   datasource:
-    url: jdbc:mysql://localhost:3306/buildledger_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/buildledger_db1?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: swarnendu
+    password: 12345678
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20

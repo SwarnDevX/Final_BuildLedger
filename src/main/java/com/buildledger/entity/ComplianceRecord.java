@@ -1,5 +1,6 @@
 package com.buildledger.entity;
 
+import com.buildledger.enums.ComplianceStatus;
 import com.buildledger.enums.ComplianceType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +28,10 @@ public class ComplianceRecord {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contract_id", nullable = false)
     private Contract contract;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ComplianceStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)

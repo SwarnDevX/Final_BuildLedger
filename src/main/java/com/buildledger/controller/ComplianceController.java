@@ -60,39 +60,4 @@ public class ComplianceController {
         return ResponseEntity.ok(ApiResponse.success("Compliance records retrieved",
                 complianceService.getComplianceRecordsByContract(contractId)));
     }
-
-    // ---- Audits ----
-    @PostMapping("/audits")
-    @PreAuthorize("hasRole('COMPLIANCE_OFFICER') or hasRole('ADMIN')")
-    @Operation(summary = "Create audit", description = "COMPLIANCE_OFFICER/ADMIN: Schedule a new audit")
-    public ResponseEntity<ApiResponse<AuditResponse>> createAudit(
-            @Valid @RequestBody AuditRequest request,
-            Authentication authentication) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Audit created",
-                        complianceService.createAudit(request, authentication.getName())));
-    }
-
-    @GetMapping("/audits")
-    @Operation(summary = "Get all audits", description = "PUBLIC")
-    public ResponseEntity<ApiResponse<List<AuditResponse>>> getAllAudits() {
-        return ResponseEntity.ok(ApiResponse.success("Audits retrieved", complianceService.getAllAudits()));
-    }
-
-    @GetMapping("/audits/{auditId}")
-    @Operation(summary = "Get audit by ID")
-    public ResponseEntity<ApiResponse<AuditResponse>> getAuditById(@PathVariable Long auditId) {
-        return ResponseEntity.ok(ApiResponse.success("Audit retrieved", complianceService.getAuditById(auditId)));
-    }
-
-    @PatchMapping("/audits/{auditId}/status")
-    @PreAuthorize("hasRole('COMPLIANCE_OFFICER') or hasRole('ADMIN')")
-    @Operation(summary = "Update audit status and findings", description = "COMPLIANCE_OFFICER/ADMIN: Progress audit lifecycle")
-    public ResponseEntity<ApiResponse<AuditResponse>> updateAuditStatus(
-            @PathVariable Long auditId,
-            @RequestParam AuditStatus status,
-            @RequestParam(required = false) String findings) {
-        return ResponseEntity.ok(ApiResponse.success("Audit updated",
-                complianceService.updateAuditStatus(auditId, status, findings)));
-    }
 }

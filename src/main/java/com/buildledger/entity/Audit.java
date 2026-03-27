@@ -36,7 +36,10 @@ public class Audit {
     private String findings;
 
     @Column(name = "date", nullable = false)
-    private LocalDate date;
+    private LocalDate date; // audit scheduleDate
+
+    @Column(name = "audit_date" ,nullable= true)
+    private LocalDate auditDate; // audit startDate (when audit is IN_PROGRESS)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
