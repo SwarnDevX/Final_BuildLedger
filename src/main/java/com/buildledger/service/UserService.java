@@ -1,17 +1,17 @@
 package com.buildledger.service;
 
-import com.buildledger.dto.request.CreateUserRequest;
-import com.buildledger.dto.request.UpdateUserRequest;
-import com.buildledger.dto.response.UserResponse;
+import com.buildledger.dto.request.CreateUserRequestDTO;
+import com.buildledger.dto.request.UpdateUserRequestDTO;
+import com.buildledger.dto.response.UserResponseDTO;
 import com.buildledger.enums.Role;
 import java.util.List;
 
 public interface UserService {
-    UserResponse createUser(CreateUserRequest request);
-    UserResponse getUserById(Long userId);
-    UserResponse getUserByUsername(String username);
-    List<UserResponse> getAllUsers();
-    List<UserResponse> getUsersByRole(Role role);
-    UserResponse updateUser(Long userId, UpdateUserRequest request);
+    UserResponseDTO createUser(CreateUserRequestDTO request);
+    UserResponseDTO getUserById(Long userId);
+    UserResponseDTO getUserByUsername(String username);
+    List<UserResponseDTO> getAllUsers();
+    List<UserResponseDTO> getUsersByRole(Role role);
+    UserResponseDTO updateUser(Long userId, UpdateUserRequestDTO request);
     void deleteUser(Long userId);
 }

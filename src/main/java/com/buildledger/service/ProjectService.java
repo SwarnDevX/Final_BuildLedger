@@ -1,16 +1,16 @@
 package com.buildledger.service;
 
-import com.buildledger.dto.request.ProjectRequest;
-import com.buildledger.dto.response.ProjectResponse;
+import com.buildledger.dto.request.ProjectRequestDTO;
+import com.buildledger.dto.response.ProjectResponseDTO;
 import com.buildledger.enums.ProjectStatus;
 import java.util.List;
 
 public interface ProjectService {
-    ProjectResponse createProject(ProjectRequest request);
-    ProjectResponse getProjectById(Long projectId);
-    List<ProjectResponse> getAllProjects();
-    List<ProjectResponse> getProjectsByManager(Long managerId);
-    ProjectResponse updateProject(Long projectId, ProjectRequest request);
+    ProjectResponseDTO createProject(ProjectRequestDTO request);
+    ProjectResponseDTO getProjectById(Long projectId);
+    List<ProjectResponseDTO> getAllProjects();
+    List<ProjectResponseDTO> getProjectsByManager(Long managerId);
+    ProjectResponseDTO updateProject(Long projectId, ProjectRequestDTO request);
     void deleteProject(Long projectId);
-    ProjectResponse updateProjectStatus(Long projectId, ProjectStatus newStatus); // add this
+    ProjectResponseDTO updateProjectStatus(Long projectId, ProjectStatus newStatus); // add this
 }

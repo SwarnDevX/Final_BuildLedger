@@ -1,7 +1,7 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.ProjectRequest;
-import com.buildledger.dto.response.ProjectResponse;
+import com.buildledger.dto.request.ProjectRequestDTO;
+import com.buildledger.dto.response.ProjectResponseDTO;
 import com.buildledger.entity.Project;
 import com.buildledger.entity.User;
 import com.buildledger.enums.ProjectStatus;
@@ -32,7 +32,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
 
     @Override
-    public ProjectResponse createProject(ProjectRequest request) {
+    public ProjectResponseDTO createProject(ProjectRequestDTO request) {
         log.info("Creating project: {}", request.getName());
 
         if (request.getEndDate().isBefore(request.getStartDate())) {
@@ -65,25 +65,25 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(readOnly = true)
-    public ProjectResponse getProjectById(Long projectId) {
+    public ProjectResponseDTO getProjectById(Long projectId) {
         return mapToResponse(findById(projectId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProjectResponse> getAllProjects() {
+    public List<ProjectResponseDTO> getAllProjects() {
         return projectRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProjectResponse> getProjectsByManager(Long managerId) {
+    public List<ProjectResponseDTO> getProjectsByManager(Long managerId) {
         return projectRepository.findByManagerUserId(managerId).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public ProjectResponse updateProject(Long projectId, ProjectRequest request) {
+    public ProjectResponseDTO updateProject(Long projectId, ProjectRequestDTO request) {
         Project project = findById(projectId);
         if (request.getName() != null) project.setName(request.getName());
         if (request.getDescription() != null) project.setDescription(request.getDescription());
@@ -110,7 +110,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse updateProjectStatus(Long projectId, ProjectStatus newStatus) {
+    public ProjectResponseDTO updateProjectStatus(Long projectId, ProjectStatus newStatus) {
         log.info("Updating project {} status to {}", projectId, newStatus);
 
         Project project = findById(projectId);
@@ -153,8 +153,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
     }
 
-    private ProjectResponse mapToResponse(Project p) {
-        return ProjectResponse.builder()
+    private ProjectResponseDTO mapToResponse(Project p) {
+        return ProjectResponseDTO.builder()
                 .projectId(p.getProjectId())
                 .name(p.getName())
                 .description(p.getDescription())

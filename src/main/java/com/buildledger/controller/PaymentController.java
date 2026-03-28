@@ -1,8 +1,8 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.PaymentRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.PaymentResponse;
+import com.buildledger.dto.request.PaymentRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.PaymentResponseDTO;
 import com.buildledger.enums.PaymentStatus;
 import com.buildledger.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,37 +30,37 @@ public class PaymentController {
     @PreAuthorize("hasRole('FINANCE_OFFICER')")
     @Operation(summary = "Process payment [FINANCE_OFFICER only]",
                description = "✅ Only FINANCE_OFFICER can process payments for approved invoices.\n❌ VENDOR, PROJECT_MANAGER, COMPLIANCE_OFFICER, ADMIN cannot process payments.")
-    public ResponseEntity<ApiResponse<PaymentResponse>> processPayment(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<ApiResponseDTO<PaymentResponseDTO>> processPayment(@Valid @RequestBody PaymentRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Payment processed successfully", paymentService.processPayment(request)));
+                .body(ApiResponseDTO.success("Payment processed successfully", paymentService.processPayment(request)));
     }
 
     @GetMapping
     @Operation(summary = "Get all payments [PUBLIC]")
-    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getAllPayments() {
-        return ResponseEntity.ok(ApiResponse.success("Payments retrieved", paymentService.getAllPayments()));
+    public ResponseEntity<ApiResponseDTO<List<PaymentResponseDTO>>> getAllPayments() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Payments retrieved", paymentService.getAllPayments()));
     }
 
     @GetMapping("/{paymentId}")
     @Operation(summary = "Get payment by ID [PUBLIC]")
-    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(@PathVariable Long paymentId) {
-        return ResponseEntity.ok(ApiResponse.success("Payment retrieved", paymentService.getPaymentById(paymentId)));
+    public ResponseEntity<ApiResponseDTO<PaymentResponseDTO>> getPaymentById(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Payment retrieved", paymentService.getPaymentById(paymentId)));
     }
 
     @GetMapping("/invoice/{invoiceId}")
     @Operation(summary = "Get payments by invoice [PUBLIC]")
-    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
-        return ResponseEntity.ok(ApiResponse.success("Payments retrieved", paymentService.getPaymentsByInvoice(invoiceId)));
+    public ResponseEntity<ApiResponseDTO<List<PaymentResponseDTO>>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Payments retrieved", paymentService.getPaymentsByInvoice(invoiceId)));
     }
 
     @PatchMapping("/{paymentId}/status")
     @PreAuthorize("hasRole('FINANCE_OFFICER')")
     @Operation(summary = "Update payment status [FINANCE_OFFICER only]",
                description = "✅ Only FINANCE_OFFICER can update payment status.\n❌ No other role can modify payment records.")
-    public ResponseEntity<ApiResponse<PaymentResponse>> updatePaymentStatus(
+    public ResponseEntity<ApiResponseDTO<PaymentResponseDTO>> updatePaymentStatus(
             @PathVariable Long paymentId,
             @RequestParam PaymentStatus status) {
-        return ResponseEntity.ok(ApiResponse.success("Payment status updated",
+        return ResponseEntity.ok(ApiResponseDTO.success("Payment status updated",
                 paymentService.updatePaymentStatus(paymentId, status)));
     }
 }

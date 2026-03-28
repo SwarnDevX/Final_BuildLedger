@@ -1,8 +1,8 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.DeliveryRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.DeliveryResponse;
+import com.buildledger.dto.request.DeliveryRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.DeliveryResponseDTO;
 import com.buildledger.enums.DeliveryStatus;
 import com.buildledger.service.DeliveryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,47 +30,47 @@ public class DeliveryController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('VENDOR')")
     @Operation(summary = "Record delivery [ADMIN, VENDOR]",
                description = " ADMIN, VENDOR can record deliveries.\n PROJECT_MANAGER, CLIENT cannot record deliveries.")
-    public ResponseEntity<ApiResponse<DeliveryResponse>> createDelivery(@Valid @RequestBody DeliveryRequest request) {
+    public ResponseEntity<ApiResponseDTO<DeliveryResponseDTO>> createDelivery(@Valid @RequestBody DeliveryRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Delivery created successfully", deliveryService.createDelivery(request)));
+                .body(ApiResponseDTO.success("Delivery created successfully", deliveryService.createDelivery(request)));
     }
 
     @GetMapping
     @Operation(summary = "Get all deliveries [ALL roles]")
-    public ResponseEntity<ApiResponse<List<DeliveryResponse>>> getAllDeliveries() {
-        return ResponseEntity.ok(ApiResponse.success("Deliveries retrieved", deliveryService.getAllDeliveries()));
+    public ResponseEntity<ApiResponseDTO<List<DeliveryResponseDTO>>> getAllDeliveries() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Deliveries retrieved", deliveryService.getAllDeliveries()));
     }
 
     @GetMapping("/{deliveryId}")
     @Operation(summary = "Get delivery by ID [ALL roles]")
-    public ResponseEntity<ApiResponse<DeliveryResponse>> getDeliveryById(@PathVariable Long deliveryId) {
-        return ResponseEntity.ok(ApiResponse.success("Delivery retrieved", deliveryService.getDeliveryById(deliveryId)));
+    public ResponseEntity<ApiResponseDTO<DeliveryResponseDTO>> getDeliveryById(@PathVariable Long deliveryId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery retrieved", deliveryService.getDeliveryById(deliveryId)));
     }
 
     @GetMapping("/contract/{contractId}")
     @Operation(summary = "Get deliveries by contract [ALL roles]")
-    public ResponseEntity<ApiResponse<List<DeliveryResponse>>> getDeliveriesByContract(@PathVariable Long contractId) {
-        return ResponseEntity.ok(ApiResponse.success("Deliveries retrieved", deliveryService.getDeliveriesByContract(contractId)));
+    public ResponseEntity<ApiResponseDTO<List<DeliveryResponseDTO>>> getDeliveriesByContract(@PathVariable Long contractId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Deliveries retrieved", deliveryService.getDeliveriesByContract(contractId)));
     }
 
     @PutMapping("/{deliveryId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROJECT_MANAGER') or hasRole('VENDOR')")
     @Operation(summary = "Update delivery [ADMIN, PROJECT_MANAGER, VENDOR]",
                description = " ADMIN, PROJECT_MANAGER, VENDOR can update deliveries.\n CLIENT cannot update deliveries.")
-    public ResponseEntity<ApiResponse<DeliveryResponse>> updateDelivery(
+    public ResponseEntity<ApiResponseDTO<DeliveryResponseDTO>> updateDelivery(
             @PathVariable Long deliveryId,
-            @Valid @RequestBody DeliveryRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Delivery updated", deliveryService.updateDelivery(deliveryId, request)));
+            @Valid @RequestBody DeliveryRequestDTO request) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery updated", deliveryService.updateDelivery(deliveryId, request)));
     }
 
     @PatchMapping("/{deliveryId}/status")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROJECT_MANAGER') or hasRole('VENDOR')")
     @Operation(summary = "Update delivery status",
                description = "VENDOR can mark as MARKED_DELIVERED.\nPROJECT_MANAGER and ADMIN can ACCEPT or REJECT deliveries.")
-    public ResponseEntity<ApiResponse<DeliveryResponse>> updateDeliveryStatus(
+    public ResponseEntity<ApiResponseDTO<DeliveryResponseDTO>> updateDeliveryStatus(
             @PathVariable Long deliveryId,
             @RequestParam DeliveryStatus status) {
-        return ResponseEntity.ok(ApiResponse.success("Delivery status updated",
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery status updated",
                 deliveryService.updateDeliveryStatus(deliveryId, status)));
     }
 
@@ -78,8 +78,8 @@ public class DeliveryController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROJECT_MANAGER')")
     @Operation(summary = "Delete delivery [ADMIN, PROJECT_MANAGER]",
                description = " ADMIN, PROJECT_MANAGER\n VENDOR cannot delete deliveries.")
-    public ResponseEntity<ApiResponse<Void>> deleteDelivery(@PathVariable Long deliveryId) {
+    public ResponseEntity<ApiResponseDTO<Void>> deleteDelivery(@PathVariable Long deliveryId) {
         deliveryService.deleteDelivery(deliveryId);
-        return ResponseEntity.ok(ApiResponse.success("Delivery deleted"));
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery deleted"));
     }
 }

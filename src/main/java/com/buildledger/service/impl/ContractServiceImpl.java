@@ -1,9 +1,9 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.ContractRequest;
-import com.buildledger.dto.request.ContractTermRequest;
-import com.buildledger.dto.response.ContractResponse;
-import com.buildledger.dto.response.ContractTermResponse;
+import com.buildledger.dto.request.ContractRequestDTO;
+import com.buildledger.dto.request.ContractTermRequestDTO;
+import com.buildledger.dto.response.ContractResponseDTO;
+import com.buildledger.dto.response.ContractTermResponseDTO;
 import com.buildledger.entity.Contract;
 import com.buildledger.entity.ContractTerm;
 import com.buildledger.entity.Project;
@@ -38,7 +38,7 @@ public class ContractServiceImpl implements ContractService {
     private final ProjectRepository projectRepository;
 
     @Override
-    public ContractResponse createContract(ContractRequest request) {
+    public ContractResponseDTO createContract(ContractRequestDTO request) {
         log.info("Creating contract for vendor {} and project {}", request.getVendorId(), request.getProjectId());
         //validateDateRange(request.getStartDate(), request.getEndDate());
 
@@ -65,45 +65,45 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     @Transactional(readOnly = true)
-    public ContractResponse getContractById(Long contractId) {
+    public ContractResponseDTO getContractById(Long contractId) {
         return mapToResponse(findById(contractId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContractResponse> getAllContracts() {
+    public List<ContractResponseDTO> getAllContracts() {
         return contractRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContractResponse> getContractsByVendor(Long vendorId) {
+    public List<ContractResponseDTO> getContractsByVendor(Long vendorId) {
         return contractRepository.findByVendorVendorId(vendorId).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContractResponse> getContractsByProject(Long projectId) {
+    public List<ContractResponseDTO> getContractsByProject(Long projectId) {
         return contractRepository.findByProjectProjectId(projectId).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContractResponse> getContractsByStatus(ContractStatus status) {
+    public List<ContractResponseDTO> getContractsByStatus(ContractStatus status) {
         return contractRepository.findByStatus(status).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public ContractResponse updateContractStatus(Long contractId, ContractStatus newStatus) {
+    public ContractResponseDTO updateContractStatus(Long contractId, ContractStatus newStatus) {
         log.info("Updating contract {} status to {}", contractId, newStatus);
 
         Contract contract = findById(contractId);
         ContractStatus currentStatus = contract.getStatus();
 
-        if (!currentStatus.canTransitionTo(newStatus)) {
+        if (!(currentStatus.canTransitionTo(newStatus))) {
             throw new InvalidStatusTransitionException(
                     currentStatus.name(), newStatus.name()
             );
@@ -114,7 +114,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public ContractResponse updateContract(Long contractId, ContractRequest request) {
+    public ContractResponseDTO updateContract(Long contractId, ContractRequestDTO request) {
         Contract contract = findById(contractId);
 
         // block editing if contract is not DRAFT
@@ -157,7 +157,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public ContractTermResponse addContractTerm(Long contractId, ContractTermRequest request) {
+    public ContractTermResponseDTO addContractTerm(Long contractId, ContractTermRequestDTO request) {
         log.info("Adding term to contract {}", contractId);
         Contract contract = findById(contractId);
 
@@ -181,7 +181,7 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContractTermResponse> getContractTerms(Long contractId) {
+    public List<ContractTermResponseDTO> getContractTerms(Long contractId) {
         findById(contractId); // validate contract exists
         return contractTermRepository.findByContractContractId(contractId).stream()
                 .map(this::mapTermToResponse).collect(Collectors.toList());
@@ -189,7 +189,7 @@ public class ContractServiceImpl implements ContractService {
 
 
     @Override
-    public ContractTermResponse editContractTerm(Long termId, ContractTermRequest request) {
+    public ContractTermResponseDTO editContractTerm(Long termId, ContractTermRequestDTO request) {
         ContractTerm term = contractTermRepository.findById(termId)
                 .orElseThrow(() -> new ResourceNotFoundException("ContractTerm", "id", termId));
 
@@ -228,8 +228,8 @@ public class ContractServiceImpl implements ContractService {
                 .orElseThrow(() -> new ResourceNotFoundException("Contract", "id", contractId));
     }
 
-    private ContractResponse mapToResponse(Contract c) {
-        return ContractResponse.builder()
+    private ContractResponseDTO mapToResponse(Contract c) {
+        return ContractResponseDTO.builder()
                 .contractId(c.getContractId())
                 .vendorId(c.getVendor().getVendorId())
                 .vendorName(c.getVendor().getName())
@@ -245,8 +245,8 @@ public class ContractServiceImpl implements ContractService {
                 .build();
     }
 
-    private ContractTermResponse mapTermToResponse(ContractTerm t) {
-        return ContractTermResponse.builder()
+    private ContractTermResponseDTO mapTermToResponse(ContractTerm t) {
+        return ContractTermResponseDTO.builder()
                 .termId(t.getTermId())
                 .contractId(t.getContract().getContractId())
                 .description(t.getDescription())

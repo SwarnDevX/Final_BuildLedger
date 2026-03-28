@@ -1,17 +1,13 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.AuditRequest;
-import com.buildledger.dto.response.AuditResponse;
-import com.buildledger.dto.response.ComplianceRecordResponse;
+import com.buildledger.dto.request.AuditRequestDTO;
+import com.buildledger.dto.response.AuditResponseDTO;
 import com.buildledger.entity.Audit;
-import com.buildledger.entity.ComplianceRecord;
 import com.buildledger.entity.User;
 import com.buildledger.enums.AuditStatus;
 import com.buildledger.exception.InvalidStatusTransitionException;
 import com.buildledger.exception.ResourceNotFoundException;
 import com.buildledger.repository.AuditRepository;
-import com.buildledger.repository.ComplianceRecordRepository;
-import com.buildledger.repository.ContractRepository;
 import com.buildledger.repository.UserRepository;
 import com.buildledger.service.AuditService;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +29,7 @@ public class AuditServiceImpl implements AuditService {
     private final UserRepository userRepository;
 
     @Override
-    public AuditResponse createAudit(AuditRequest request, String officerUsername) {
+    public AuditResponseDTO createAudit(AuditRequestDTO request, String officerUsername) {
         log.info("Creating audit by officer: {}", officerUsername);
         User officer = userRepository.findByUsername(officerUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", officerUsername));
@@ -51,18 +47,18 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @Transactional(readOnly = true)
-    public AuditResponse getAuditById(Long auditId) {
+    public AuditResponseDTO getAuditById(Long auditId) {
         return mapAuditToResponse(findAuditById(auditId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<AuditResponse> getAllAudits() {
+    public List<AuditResponseDTO> getAllAudits() {
         return auditRepository.findAll().stream().map(this::mapAuditToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public AuditResponse updateAuditStatus(Long auditId, AuditStatus newStatus, String findings) {
+    public AuditResponseDTO updateAuditStatus(Long auditId, AuditStatus newStatus, String findings) {
         log.info("Updating audit {} status to {}", auditId, newStatus);
 
         Audit audit = findAuditById(auditId);
@@ -89,8 +85,8 @@ public class AuditServiceImpl implements AuditService {
                 .orElseThrow(() -> new ResourceNotFoundException("Audit", "id", auditId));
     }
 
-    private AuditResponse mapAuditToResponse(Audit a) {
-        return AuditResponse.builder()
+    private AuditResponseDTO mapAuditToResponse(Audit a) {
+        return AuditResponseDTO.builder()
                 .auditId(a.getAuditId())
                 .complianceOfficerId(a.getComplianceOfficer().getUserId())
                 .officerName(a.getComplianceOfficer().getName())

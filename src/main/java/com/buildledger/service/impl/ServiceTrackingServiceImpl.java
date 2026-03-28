@@ -1,7 +1,7 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.ServiceRequest;
-import com.buildledger.dto.response.ServiceResponse;
+import com.buildledger.dto.request.ServiceRequestDTO;
+import com.buildledger.dto.response.ServiceResponseDTO;
 import com.buildledger.entity.Contract;
 import com.buildledger.enums.ServiceStatus;
 import com.buildledger.exception.BadRequestException;
@@ -27,8 +27,13 @@ public class ServiceTrackingServiceImpl implements ServiceTrackingService {
     private final ContractRepository contractRepository;
 
     @Override
-    public ServiceResponse createService(ServiceRequest request) {
+    public ServiceResponseDTO createService(ServiceRequestDTO request) {
         log.info("Creating service record for contract {}", request.getContractId());
+
+        if (!hasRole(com.buildledger.enums.Role.VENDOR)) {
+            throw new com.buildledger.exception.BuildLedgerAccessDeniedException("Only vendors or admins can record services.");
+        }
+
         Contract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new ResourceNotFoundException("Contract", "id", request.getContractId()));
 
@@ -44,25 +49,25 @@ public class ServiceTrackingServiceImpl implements ServiceTrackingService {
 
     @Override
     @Transactional(readOnly = true)
-    public ServiceResponse getServiceById(Long serviceId) {
+    public ServiceResponseDTO getServiceById(Long serviceId) {
         return mapToResponse(findById(serviceId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ServiceResponse> getAllServices() {
+    public List<ServiceResponseDTO> getAllServices() {
         return serviceRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ServiceResponse> getServicesByContract(Long contractId) {
+    public List<ServiceResponseDTO> getServicesByContract(Long contractId) {
         return serviceRepository.findByContractContractId(contractId).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public ServiceResponse updateServiceStatus(Long serviceId, ServiceStatus nextStatus) {
+    public ServiceResponseDTO updateServiceStatus(Long serviceId, ServiceStatus nextStatus) {
         com.buildledger.entity.Service service = findById(serviceId);
         ServiceStatus currentStatus = service.getStatus();
 
@@ -108,8 +113,16 @@ public class ServiceTrackingServiceImpl implements ServiceTrackingService {
 
 
     @Override
-    public ServiceResponse updateService(Long serviceId, ServiceRequest request) {
+    public ServiceResponseDTO updateService(Long serviceId, ServiceRequestDTO request) {
         com.buildledger.entity.Service service = findById(serviceId);
+
+        if(request.getContractId() != null){
+            Contract contract = contractRepository.findById(request.getContractId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Contract", "ID", request.getContractId())
+            );
+            service.setContract(contract);
+        }
+
         if (request.getDescription() != null) service.setDescription(request.getDescription());
         if (request.getCompletionDate() != null) service.setCompletionDate(request.getCompletionDate());
         if (request.getRemarks() != null) service.setRemarks(request.getRemarks());
@@ -126,8 +139,8 @@ public class ServiceTrackingServiceImpl implements ServiceTrackingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Service", "id", id));
     }
 
-    private ServiceResponse mapToResponse(com.buildledger.entity.Service s) {
-        return ServiceResponse.builder()
+    private ServiceResponseDTO mapToResponse(com.buildledger.entity.Service s) {
+        return ServiceResponseDTO.builder()
                 .serviceId(s.getServiceId())
                 .contractId(s.getContract().getContractId())
                 .description(s.getDescription())

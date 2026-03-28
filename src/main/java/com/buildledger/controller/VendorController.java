@@ -1,10 +1,10 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.CreateVendorRequest;
-import com.buildledger.dto.request.UpdateVendorRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.VendorDocumentResponse;
-import com.buildledger.dto.response.VendorResponse;
+import com.buildledger.dto.request.CreateVendorRequestDTO;
+import com.buildledger.dto.request.UpdateVendorRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.VendorDocumentResponseDTO;
+import com.buildledger.dto.response.VendorResponseDTO;
 import com.buildledger.enums.DocumentType;
 import com.buildledger.enums.VendorStatus;
 import com.buildledger.enums.VerificationStatus;
@@ -54,11 +54,11 @@ public class VendorController {
             A temporary password is printed in the server console on approval.
             """
     )
-    public ResponseEntity<ApiResponse<VendorResponse>> registerVendor(
-            @Valid @RequestBody CreateVendorRequest request) {
-        VendorResponse response = vendorService.registerVendor(request);
+    public ResponseEntity<ApiResponseDTO<VendorResponseDTO>> registerVendor(
+            @Valid @RequestBody CreateVendorRequestDTO request) {
+        VendorResponseDTO response = vendorService.registerVendor(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(
+                .body(ApiResponseDTO.success(
                         "Vendor registered successfully. Please wait for document verification.", response));
     }
 
@@ -67,58 +67,58 @@ public class VendorController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new vendor [ADMIN only]")
-    public ResponseEntity<ApiResponse<VendorResponse>> createVendor(
-            @Valid @RequestBody CreateVendorRequest request,
+    public ResponseEntity<ApiResponseDTO<VendorResponseDTO>> createVendor(
+            @Valid @RequestBody CreateVendorRequestDTO request,
             Authentication auth, HttpServletRequest httpRequest) {
-        VendorResponse response = vendorService.createVendor(request);
+        VendorResponseDTO response = vendorService.createVendor(request);
         auditLogService.logAction(null, auth.getName(), "CREATE", "VENDOR",
                 "Created vendor: " + response.getName(), httpRequest.getRemoteAddr());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Vendor created successfully", response));
+                .body(ApiResponseDTO.success("Vendor created successfully", response));
     }
 
     @GetMapping
     @Operation(summary = "Get all vendors [ALL roles]")
-    public ResponseEntity<ApiResponse<List<VendorResponse>>> getAllVendors() {
-        return ResponseEntity.ok(ApiResponse.success("Vendors retrieved", vendorService.getAllVendors()));
+    public ResponseEntity<ApiResponseDTO<List<VendorResponseDTO>>> getAllVendors() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Vendors retrieved", vendorService.getAllVendors()));
     }
 
     @GetMapping("/{vendorId}")
     @Operation(summary = "Get vendor by ID [ALL roles]")
-    public ResponseEntity<ApiResponse<VendorResponse>> getVendorById(@PathVariable Long vendorId) {
-        return ResponseEntity.ok(ApiResponse.success("Vendor retrieved", vendorService.getVendorById(vendorId)));
+    public ResponseEntity<ApiResponseDTO<VendorResponseDTO>> getVendorById(@PathVariable Long vendorId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Vendor retrieved", vendorService.getVendorById(vendorId)));
     }
 
     @GetMapping("/status/{status}")
     @Operation(summary = "Get vendors by status [ALL roles]")
-    public ResponseEntity<ApiResponse<List<VendorResponse>>> getVendorsByStatus(@PathVariable VendorStatus status) {
-        return ResponseEntity.ok(ApiResponse.success("Vendors retrieved", vendorService.getVendorsByStatus(status)));
+    public ResponseEntity<ApiResponseDTO<List<VendorResponseDTO>>> getVendorsByStatus(@PathVariable VendorStatus status) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Vendors retrieved", vendorService.getVendorsByStatus(status)));
     }
 
     @PutMapping("/{vendorId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update vendor details [ADMIN only]")
-    public ResponseEntity<ApiResponse<VendorResponse>> updateVendor(
+    public ResponseEntity<ApiResponseDTO<VendorResponseDTO>> updateVendor(
             @PathVariable Long vendorId,
-            @Valid @RequestBody UpdateVendorRequest request,
+            @Valid @RequestBody UpdateVendorRequestDTO request,
             Authentication auth, HttpServletRequest httpRequest) {
-        VendorResponse response = vendorService.updateVendor(vendorId, request);
+        VendorResponseDTO response = vendorService.updateVendor(vendorId, request);
         auditLogService.logAction(null, auth.getName(), "UPDATE", "VENDOR",
                 "Updated vendor id: " + vendorId, httpRequest.getRemoteAddr());
-        return ResponseEntity.ok(ApiResponse.success("Vendor updated successfully", response));
+        return ResponseEntity.ok(ApiResponseDTO.success("Vendor updated successfully", response));
     }
 
     @DeleteMapping("/{vendorId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a vendor [ADMIN only]",
             description = "Also deletes all associated PDF documents from disk.")
-    public ResponseEntity<ApiResponse<Void>> deleteVendor(
+    public ResponseEntity<ApiResponseDTO<Void>> deleteVendor(
             @PathVariable Long vendorId,
             Authentication auth, HttpServletRequest httpRequest) {
         vendorService.deleteVendor(vendorId);
         auditLogService.logAction(null, auth.getName(), "DELETE", "VENDOR",
                 "Deleted vendor id: " + vendorId, httpRequest.getRemoteAddr());
-        return ResponseEntity.ok(ApiResponse.success("Vendor deleted successfully"));
+        return ResponseEntity.ok(ApiResponseDTO.success("Vendor deleted successfully"));
     }
 
     // ── Document Upload ──────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ public class VendorController {
         - Any REJECTED → vendor status becomes **SUSPENDED**
         """
     )
-    public ResponseEntity<ApiResponse<VendorDocumentResponse>> uploadDocument(
+    public ResponseEntity<ApiResponseDTO<VendorDocumentResponseDTO>> uploadDocument(
             @PathVariable Long vendorId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("docType") DocumentType docType,
@@ -151,7 +151,7 @@ public class VendorController {
         // No auth → use system identity
         String username = "PUBLIC_USER";
 
-        VendorDocumentResponse response = vendorService.uploadDocument(
+        VendorDocumentResponseDTO response = vendorService.uploadDocument(
                 vendorId, file, docType, remarks, username);
 
         auditLogService.logAction(
@@ -164,7 +164,7 @@ public class VendorController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(
+                .body(ApiResponseDTO.success(
                         "Document uploaded successfully. Awaiting review.",
                         response
                 ));
@@ -174,9 +174,9 @@ public class VendorController {
 
     @GetMapping("/{vendorId}/documents")
     @Operation(summary = "Get all documents for a vendor [ALL roles]")
-    public ResponseEntity<ApiResponse<List<VendorDocumentResponse>>> getVendorDocuments(
+    public ResponseEntity<ApiResponseDTO<List<VendorDocumentResponseDTO>>> getVendorDocuments(
             @PathVariable Long vendorId) {
-        return ResponseEntity.ok(ApiResponse.success("Documents retrieved",
+        return ResponseEntity.ok(ApiResponseDTO.success("Documents retrieved",
                 vendorService.getVendorDocuments(vendorId)));
     }
 
@@ -186,8 +186,8 @@ public class VendorController {
             summary = "Get all documents pending review [PROJECT_MANAGER / ADMIN]",
             description = "Returns all PENDING documents across all vendors — the PM review queue."
     )
-    public ResponseEntity<ApiResponse<List<VendorDocumentResponse>>> getPendingDocuments() {
-        return ResponseEntity.ok(ApiResponse.success("Pending documents retrieved",
+    public ResponseEntity<ApiResponseDTO<List<VendorDocumentResponseDTO>>> getPendingDocuments() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Pending documents retrieved",
                 vendorService.getDocumentsByStatus(VerificationStatus.PENDING)));
     }
 
@@ -197,9 +197,9 @@ public class VendorController {
             summary = "Get documents by verification status [PROJECT_MANAGER / ADMIN]",
             description = "Filter by: `PENDING`, `APPROVED`, `REJECTED`"
     )
-    public ResponseEntity<ApiResponse<List<VendorDocumentResponse>>> getDocumentsByStatus(
+    public ResponseEntity<ApiResponseDTO<List<VendorDocumentResponseDTO>>> getDocumentsByStatus(
             @PathVariable VerificationStatus status) {
-        return ResponseEntity.ok(ApiResponse.success("Documents retrieved",
+        return ResponseEntity.ok(ApiResponseDTO.success("Documents retrieved",
                 vendorService.getDocumentsByStatus(status)));
     }
 
@@ -267,14 +267,14 @@ public class VendorController {
             - Any document REJECTED  → vendor status → **SUSPENDED**
             """
     )
-    public ResponseEntity<ApiResponse<VendorDocumentResponse>> reviewDocument(
+    public ResponseEntity<ApiResponseDTO<VendorDocumentResponseDTO>> reviewDocument(
             @PathVariable Long documentId,
             @RequestParam VerificationStatus status,
             @RequestParam(required = false) String reviewRemarks,
             Authentication auth,
             HttpServletRequest httpRequest) {
 
-        VendorDocumentResponse response = vendorService.reviewDocument(
+        VendorDocumentResponseDTO response = vendorService.reviewDocument(
                 documentId, status, reviewRemarks, auth.getName());
 
         auditLogService.logAction(null, auth.getName(), "REVIEW_DOCUMENT", "VENDOR_DOCUMENT",
@@ -286,6 +286,6 @@ public class VendorController {
                 ? "Document approved successfully."
                 : "Document rejected.";
 
-        return ResponseEntity.ok(ApiResponse.success(message, response));
+        return ResponseEntity.ok(ApiResponseDTO.success(message, response));
     }
 }

@@ -1,9 +1,9 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.CreateVendorRequest;
-import com.buildledger.dto.request.UpdateVendorRequest;
-import com.buildledger.dto.response.VendorDocumentResponse;
-import com.buildledger.dto.response.VendorResponse;
+import com.buildledger.dto.request.CreateVendorRequestDTO;
+import com.buildledger.dto.request.UpdateVendorRequestDTO;
+import com.buildledger.dto.response.VendorDocumentResponseDTO;
+import com.buildledger.dto.response.VendorResponseDTO;
 import com.buildledger.entity.User;
 import com.buildledger.entity.Vendor;
 import com.buildledger.entity.VendorDocument;
@@ -34,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -68,13 +67,13 @@ public class VendorServiceImpl implements VendorService {
      * can expose it without authentication.
      */
     @Override
-    public VendorResponse registerVendor(CreateVendorRequest request) {
+    public VendorResponseDTO registerVendor(CreateVendorRequestDTO request) {
         log.info("Vendor self-registration: {}", request.getName());
         return createVendor(request);
     }
 
     @Override
-    public VendorResponse createVendor(CreateVendorRequest request) {
+    public VendorResponseDTO createVendor(CreateVendorRequestDTO request) {
         log.info("Registering vendor: {}", request.getName());
 
         if (vendorRepository.existsByEmail(request.getEmail())) {
@@ -96,13 +95,13 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     @Transactional(readOnly = true)
-    public VendorResponse getVendorById(Long vendorId) {
+    public VendorResponseDTO getVendorById(Long vendorId) {
         return mapToResponse(findVendorById(vendorId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<VendorResponse> getAllVendors() {
+    public List<VendorResponseDTO> getAllVendors() {
         return vendorRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -110,14 +109,14 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<VendorResponse> getVendorsByStatus(VendorStatus status) {
+    public List<VendorResponseDTO> getVendorsByStatus(VendorStatus status) {
         return vendorRepository.findByStatus(status).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public VendorResponse updateVendor(Long vendorId, UpdateVendorRequest request) {
+    public VendorResponseDTO updateVendor(Long vendorId, UpdateVendorRequestDTO request) {
         Vendor vendor = findVendorById(vendorId);
 
         if (request.getName()        != null) vendor.setName(request.getName());
@@ -169,9 +168,9 @@ public class VendorServiceImpl implements VendorService {
     // ── Document lifecycle ────────────────────────────────────────────────────
 
     @Override
-    public VendorDocumentResponse uploadDocument(Long vendorId, MultipartFile file,
-                                                 DocumentType docType, String remarks,
-                                                 String uploaderUsername) {
+    public VendorDocumentResponseDTO uploadDocument(Long vendorId, MultipartFile file,
+                                                    DocumentType docType, String remarks,
+                                                    String uploaderUsername) {
         log.info("Document upload: vendorId={}, docType={}, uploader={}", vendorId, docType, uploaderUsername);
 
         Vendor vendor = findVendorById(vendorId);
@@ -233,7 +232,7 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<VendorDocumentResponse> getVendorDocuments(Long vendorId) {
+    public List<VendorDocumentResponseDTO> getVendorDocuments(Long vendorId) {
         findVendorById(vendorId); // ensures vendor exists
         return vendorDocumentRepository.findByVendorVendorId(vendorId).stream()
                 .map(this::mapDocumentToResponse)
@@ -242,7 +241,7 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<VendorDocumentResponse> getDocumentsByStatus(VerificationStatus status) {
+    public List<VendorDocumentResponseDTO> getDocumentsByStatus(VerificationStatus status) {
         return vendorDocumentRepository.findByVerificationStatus(status).stream()
                 .map(this::mapDocumentToResponse)
                 .collect(Collectors.toList());
@@ -256,8 +255,8 @@ public class VendorServiceImpl implements VendorService {
     }
 
     @Override
-    public VendorDocumentResponse reviewDocument(Long documentId, VerificationStatus status,
-                                                 String reviewRemarks, String reviewerUsername) {
+    public VendorDocumentResponseDTO reviewDocument(Long documentId, VerificationStatus status,
+                                                    String reviewRemarks, String reviewerUsername) {
         log.info("Document review: id={}, newStatus={}, reviewer={}", documentId, status, reviewerUsername);
 
         if (status == VerificationStatus.PENDING) {
@@ -540,8 +539,8 @@ public class VendorServiceImpl implements VendorService {
         };
     }
 
-    private VendorResponse mapToResponse(Vendor vendor) {
-        return VendorResponse.builder()
+    private VendorResponseDTO mapToResponse(Vendor vendor) {
+        return VendorResponseDTO.builder()
                 .vendorId(vendor.getVendorId())
                 .name(vendor.getName())
                 .contactInfo(vendor.getContactInfo())
@@ -556,11 +555,11 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
-    private VendorDocumentResponse mapDocumentToResponse(VendorDocument doc) {
+    private VendorDocumentResponseDTO mapDocumentToResponse(VendorDocument doc) {
         String fileUri      = doc.getFileUri();
         String displayName  = fileUri != null ? fileUri.replaceAll(".*[\\\\/]", "") : "unknown.pdf";
 
-        return VendorDocumentResponse.builder()
+        return VendorDocumentResponseDTO.builder()
                 .documentId(doc.getDocumentId())
                 .vendorId(doc.getVendor().getVendorId())
                 .vendorName(doc.getVendor().getName())

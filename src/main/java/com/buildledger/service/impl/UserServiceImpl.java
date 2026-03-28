@@ -1,8 +1,8 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.CreateUserRequest;
-import com.buildledger.dto.request.UpdateUserRequest;
-import com.buildledger.dto.response.UserResponse;
+import com.buildledger.dto.request.CreateUserRequestDTO;
+import com.buildledger.dto.request.UpdateUserRequestDTO;
+import com.buildledger.dto.response.UserResponseDTO;
 import com.buildledger.entity.User;
 import com.buildledger.enums.Role;
 import com.buildledger.exception.BadRequestException;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +40,7 @@ public class UserServiceImpl implements UserService {
     // ── Create ────────────────────────────────────────────────────────────────
 
     @Override
-    public UserResponse createUser(CreateUserRequest request) {
+    public UserResponseDTO createUser(CreateUserRequestDTO request) {
         log.info("Creating user: {} with role: {}", request.getUsername(), request.getRole());
 
         // ── GUARD 1: Role assignment — ADMIN and VENDOR are privileged roles ──
@@ -82,13 +81,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserById(Long userId) {
+    public UserResponseDTO getUserById(Long userId) {
         return mapToResponse(findById(userId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserByUsername(String username) {
+    public UserResponseDTO getUserByUsername(String username) {
         return mapToResponse(
                 userRepository.findByUsername(username)
                         .orElseThrow(() -> new ResourceNotFoundException("User", "username", username))
@@ -97,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponse> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -105,7 +104,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponse> getUsersByRole(Role role) {
+    public List<UserResponseDTO> getUsersByRole(Role role) {
         return userRepository.findByRole(role).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -114,7 +113,7 @@ public class UserServiceImpl implements UserService {
     // ── Update ────────────────────────────────────────────────────────────────
 
     @Override
-    public UserResponse updateUser(Long userId, UpdateUserRequest request) {
+    public UserResponseDTO updateUser(Long userId, UpdateUserRequestDTO request) {
         log.info("Updating user id={}", userId);
         User user = findById(userId);
 
@@ -168,8 +167,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
     }
 
-    private UserResponse mapToResponse(User user) {
-        return UserResponse.builder()
+    private UserResponseDTO mapToResponse(User user) {
+        return UserResponseDTO.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .name(user.getName())

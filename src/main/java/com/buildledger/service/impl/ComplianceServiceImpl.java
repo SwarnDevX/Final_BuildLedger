@@ -1,14 +1,9 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.AuditRequest;
-import com.buildledger.dto.request.ComplianceRecordRequest;
-import com.buildledger.dto.response.AuditResponse;
-import com.buildledger.dto.response.ComplianceRecordResponse;
-import com.buildledger.entity.Audit;
+import com.buildledger.dto.request.ComplianceRecordRequestDTO;
+import com.buildledger.dto.response.ComplianceRecordResponseDTO;
 import com.buildledger.entity.ComplianceRecord;
 import com.buildledger.entity.Contract;
-import com.buildledger.entity.User;
-import com.buildledger.enums.AuditStatus;
 import com.buildledger.enums.ComplianceStatus;
 import com.buildledger.exception.InvalidStatusTransitionException;
 import com.buildledger.exception.ResourceNotFoundException;
@@ -22,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +32,7 @@ public class ComplianceServiceImpl implements ComplianceService {
     private final UserRepository userRepository;
 
     @Override
-    public ComplianceRecordResponse createComplianceRecord(ComplianceRecordRequest request) {
+    public ComplianceRecordResponseDTO createComplianceRecord(ComplianceRecordRequestDTO request) {
         log.info("Creating compliance record for contract {}", request.getContractId());
         Contract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new ResourceNotFoundException("Contract", "id", request.getContractId()));
@@ -57,7 +51,7 @@ public class ComplianceServiceImpl implements ComplianceService {
 
     @Override
     @Transactional(readOnly = true)
-    public ComplianceRecordResponse getComplianceRecordById(Long complianceId) {
+    public ComplianceRecordResponseDTO getComplianceRecordById(Long complianceId) {
         ComplianceRecord record = complianceRecordRepository.findById(complianceId)
                 .orElseThrow(() -> new ResourceNotFoundException("ComplianceRecord", "id", complianceId));
         return mapRecordToResponse(record);
@@ -65,13 +59,13 @@ public class ComplianceServiceImpl implements ComplianceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ComplianceRecordResponse> getAllComplianceRecords() {
+    public List<ComplianceRecordResponseDTO> getAllComplianceRecords() {
         return complianceRecordRepository.findAll().stream()
                 .map(this::mapRecordToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public ComplianceRecordResponse updateComplianceRecordStatus(Long complianceId, ComplianceStatus newStatus) {
+    public ComplianceRecordResponseDTO updateComplianceRecordStatus(Long complianceId, ComplianceStatus newStatus) {
         log.info("Updating compliance record {} status to {}", complianceId, newStatus);
 
         ComplianceRecord record = complianceRecordRepository.findById(complianceId)
@@ -91,13 +85,13 @@ public class ComplianceServiceImpl implements ComplianceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ComplianceRecordResponse> getComplianceRecordsByContract(Long contractId) {
+    public List<ComplianceRecordResponseDTO> getComplianceRecordsByContract(Long contractId) {
         return complianceRecordRepository.findByContractContractId(contractId).stream()
                 .map(this::mapRecordToResponse).collect(Collectors.toList());
     }
 
-    private ComplianceRecordResponse mapRecordToResponse(ComplianceRecord r) {
-        return ComplianceRecordResponse.builder()
+    private ComplianceRecordResponseDTO mapRecordToResponse(ComplianceRecord r) {
+        return ComplianceRecordResponseDTO.builder()
                 .complianceId(r.getComplianceId())
                 .contractId(r.getContract().getContractId())
                 .type(r.getType())

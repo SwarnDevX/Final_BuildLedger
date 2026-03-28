@@ -1,7 +1,7 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.DeliveryRequest;
-import com.buildledger.dto.response.DeliveryResponse;
+import com.buildledger.dto.request.DeliveryRequestDTO;
+import com.buildledger.dto.response.DeliveryResponseDTO;
 import com.buildledger.entity.Contract;
 import com.buildledger.entity.Delivery;
 import com.buildledger.enums.DeliveryStatus;
@@ -28,7 +28,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final ContractRepository contractRepository;
 
     @Override
-    public DeliveryResponse createDelivery(DeliveryRequest request) {
+    public DeliveryResponseDTO createDelivery(DeliveryRequestDTO request) {
         log.info("Creating delivery for contract {}", request.getContractId());
         
 
@@ -53,25 +53,25 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryResponse getDeliveryById(Long deliveryId) {
+    public DeliveryResponseDTO getDeliveryById(Long deliveryId) {
         return mapToResponse(findById(deliveryId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeliveryResponse> getAllDeliveries() {
+    public List<DeliveryResponseDTO> getAllDeliveries() {
         return deliveryRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeliveryResponse> getDeliveriesByContract(Long contractId) {
+    public List<DeliveryResponseDTO> getDeliveriesByContract(Long contractId) {
         return deliveryRepository.findByContractContractId(contractId).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public DeliveryResponse updateDeliveryStatus(Long deliveryId, DeliveryStatus nextStatus) {
+    public DeliveryResponseDTO updateDeliveryStatus(Long deliveryId, DeliveryStatus nextStatus) {
         Delivery delivery = findById(deliveryId);
         DeliveryStatus currentStatus = delivery.getStatus();
 
@@ -139,6 +139,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             if (currentStatus != DeliveryStatus.PENDING) {
                 throw new BadRequestException("Status can only move to DELAYED from PENDING.");
             }
+
         }
 
         delivery.setStatus(nextStatus);
@@ -154,8 +155,14 @@ public class DeliveryServiceImpl implements DeliveryService {
 
 
     @Override
-    public DeliveryResponse updateDelivery(Long deliveryId, DeliveryRequest request) {
+    public DeliveryResponseDTO updateDelivery(Long deliveryId, DeliveryRequestDTO request) {
         Delivery delivery = findById(deliveryId);
+        if(request.getContractId() != null){
+            Contract contract = contractRepository.findById(request.getContractId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Contract", "ID", request.getContractId())
+            );
+            delivery.setContract(contract);
+        }
         if (request.getDate() != null) delivery.setDate(request.getDate());
         if (request.getItem() != null) delivery.setItem(request.getItem());
         if (request.getQuantity() != null) delivery.setQuantity(request.getQuantity());
@@ -174,8 +181,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery", "id", id));
     }
 
-    private DeliveryResponse mapToResponse(Delivery d) {
-        return DeliveryResponse.builder()
+    private DeliveryResponseDTO mapToResponse(Delivery d) {
+        return DeliveryResponseDTO.builder()
                 .deliveryId(d.getDeliveryId())
                 .contractId(d.getContract().getContractId())
                 .date(d.getDate())

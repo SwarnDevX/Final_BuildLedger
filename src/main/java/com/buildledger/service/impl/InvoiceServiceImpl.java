@@ -1,7 +1,7 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.InvoiceRequest;
-import com.buildledger.dto.response.InvoiceResponse;
+import com.buildledger.dto.request.InvoiceRequestDTO;
+import com.buildledger.dto.response.InvoiceResponseDTO;
 import com.buildledger.entity.Contract;
 import com.buildledger.entity.Invoice;
 import com.buildledger.enums.InvoiceStatus;
@@ -28,7 +28,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ContractRepository contractRepository;
 
     @Override
-    public InvoiceResponse submitInvoice(InvoiceRequest request) {
+    public InvoiceResponseDTO submitInvoice(InvoiceRequestDTO request) {
         log.info("Submitting invoice for contract {}", request.getContractId());
         Contract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new ResourceNotFoundException("Contract", "id", request.getContractId()));
@@ -47,32 +47,32 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     @Transactional(readOnly = true)
-    public InvoiceResponse getInvoiceById(Long invoiceId) {
+    public InvoiceResponseDTO getInvoiceById(Long invoiceId) {
         return mapToResponse(findById(invoiceId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<InvoiceResponse> getAllInvoices() {
+    public List<InvoiceResponseDTO> getAllInvoices() {
         return invoiceRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<InvoiceResponse> getInvoicesByContract(Long contractId) {
+    public List<InvoiceResponseDTO> getInvoicesByContract(Long contractId) {
         return invoiceRepository.findByContractContractId(contractId).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<InvoiceResponse> getInvoicesByStatus(InvoiceStatus status) {
+    public List<InvoiceResponseDTO> getInvoicesByStatus(InvoiceStatus status) {
         return invoiceRepository.findByStatus(status).stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
-    public InvoiceResponse approveInvoice(Long invoiceId) {
+    public InvoiceResponseDTO approveInvoice(Long invoiceId) {
         log.info("Approving invoice {}", invoiceId);
         Invoice invoice = findById(invoiceId);
         if (invoice.getStatus() != InvoiceStatus.UNDER_REVIEW && invoice.getStatus() != InvoiceStatus.UNDER_REVIEW) {
@@ -83,7 +83,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public InvoiceResponse rejectInvoice(Long invoiceId, String reason) {
+    public InvoiceResponseDTO rejectInvoice(Long invoiceId, String reason) {
         log.info("Rejecting invoice {}", invoiceId);
         Invoice invoice = findById(invoiceId);
         if (invoice.getStatus() != InvoiceStatus.UNDER_REVIEW && invoice.getStatus() != InvoiceStatus.UNDER_REVIEW) {
@@ -108,8 +108,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", "id", id));
     }
 
-    private InvoiceResponse mapToResponse(Invoice i) {
-        return InvoiceResponse.builder()
+    private InvoiceResponseDTO mapToResponse(Invoice i) {
+        return InvoiceResponseDTO.builder()
                 .invoiceId(i.getInvoiceId())
                 .contractId(i.getContract().getContractId())
                 .contractVendorName(i.getContract().getVendor().getName())

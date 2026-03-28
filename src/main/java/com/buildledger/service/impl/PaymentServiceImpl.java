@@ -1,12 +1,13 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.PaymentRequest;
-import com.buildledger.dto.response.PaymentResponse;
+import com.buildledger.dto.request.PaymentRequestDTO;
+import com.buildledger.dto.response.PaymentResponseDTO;
 import com.buildledger.entity.Invoice;
 import com.buildledger.entity.Payment;
 import com.buildledger.enums.InvoiceStatus;
 import com.buildledger.enums.PaymentStatus;
 import com.buildledger.exception.BadRequestException;
+import com.buildledger.exception.InvalidStatusTransitionException;
 import com.buildledger.exception.ResourceNotFoundException;
 import com.buildledger.repository.InvoiceRepository;
 import com.buildledger.repository.PaymentRepository;
@@ -29,13 +30,17 @@ public class PaymentServiceImpl implements PaymentService {
     private final InvoiceRepository invoiceRepository;
 
     @Override
-    public PaymentResponse processPayment(PaymentRequest request) {
+    public PaymentResponseDTO processPayment(PaymentRequestDTO request) {
         log.info("Processing payment for invoice {}", request.getInvoiceId());
+
         Invoice invoice = invoiceRepository.findById(request.getInvoiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", "id", request.getInvoiceId()));
 
         if (invoice.getStatus() != InvoiceStatus.APPROVED) {
-            throw new BadRequestException("Payment can only be processed for APPROVED invoices. Current status: " + invoice.getStatus());
+            throw new BadRequestException(
+                    "Payment can only be processed for APPROVED invoices. Current status: "
+                            + invoice.getStatus()
+            );
         }
 
         Payment payment = Payment.builder()
@@ -48,39 +53,62 @@ public class PaymentServiceImpl implements PaymentService {
                 .remarks(request.getRemarks())
                 .build();
 
-        Payment saved = paymentRepository.save(payment);
-
-        // Mark invoice as PAID after payment is processed
-        invoice.setStatus(InvoiceStatus.PAID);
-        invoiceRepository.save(invoice);
-
-        saved.setStatus(PaymentStatus.COMPLETED);
-        return mapToResponse(paymentRepository.save(saved));
+        return mapToResponse(paymentRepository.save(payment));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PaymentResponse getPaymentById(Long paymentId) {
+    public PaymentResponseDTO getPaymentById(Long paymentId) {
         return mapToResponse(findById(paymentId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentResponse> getAllPayments() {
-        return paymentRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+    public List<PaymentResponseDTO> getAllPayments() {
+        return paymentRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentResponse> getPaymentsByInvoice(Long invoiceId) {
+    public List<PaymentResponseDTO> getPaymentsByInvoice(Long invoiceId) {
         return paymentRepository.findByInvoiceInvoiceId(invoiceId).stream()
-                .map(this::mapToResponse).collect(Collectors.toList());
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public PaymentResponse updatePaymentStatus(Long paymentId, PaymentStatus status) {
+    public PaymentResponseDTO updatePaymentStatus(Long paymentId, PaymentStatus newStatus) {
+        log.info("Updating payment {} status to {}", paymentId, newStatus);
+
         Payment payment = findById(paymentId);
-        payment.setStatus(status);
+        PaymentStatus currentStatus = payment.getStatus();
+
+        if (!currentStatus.canTransitionTo(newStatus)) {
+            throw new InvalidStatusTransitionException(
+                    currentStatus.name(), newStatus.name()
+            );
+        }
+
+        payment.setStatus(newStatus);
+
+        if (newStatus == PaymentStatus.COMPLETED) {
+            Invoice invoice = payment.getInvoice();
+            invoice.setStatus(InvoiceStatus.PAID);
+            invoiceRepository.save(invoice);
+            log.info("Invoice {} marked as PAID after payment {} completed",
+                    invoice.getInvoiceId(), paymentId);
+        }
+
+        if (newStatus == PaymentStatus.REVERSED) {
+            Invoice invoice = payment.getInvoice();
+            invoice.setStatus(InvoiceStatus.APPROVED);
+            invoiceRepository.save(invoice);
+            log.info("Invoice {} reopened to APPROVED after payment {} reversed",
+                    invoice.getInvoiceId(), paymentId);
+        }
+
         return mapToResponse(paymentRepository.save(payment));
     }
 
@@ -89,8 +117,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", id));
     }
 
-    private PaymentResponse mapToResponse(Payment p) {
-        return PaymentResponse.builder()
+    private PaymentResponseDTO mapToResponse(Payment p) {
+        return PaymentResponseDTO.builder()
                 .paymentId(p.getPaymentId())
                 .invoiceId(p.getInvoice().getInvoiceId())
                 .amount(p.getAmount())

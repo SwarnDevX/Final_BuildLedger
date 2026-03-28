@@ -1,11 +1,8 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.AuditRequest;
-import com.buildledger.dto.request.ComplianceRecordRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.AuditResponse;
-import com.buildledger.dto.response.ComplianceRecordResponse;
-import com.buildledger.enums.AuditStatus;
+import com.buildledger.dto.request.ComplianceRecordRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.ComplianceRecordResponseDTO;
 import com.buildledger.service.ComplianceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,33 +27,33 @@ public class ComplianceController {
     @PostMapping("/compliance")
     @PreAuthorize("hasRole('COMPLIANCE_OFFICER') or hasRole('ADMIN')")
     @Operation(summary = "Create compliance record", description = "COMPLIANCE_OFFICER/ADMIN: Record a compliance check")
-    public ResponseEntity<ApiResponse<ComplianceRecordResponse>> createComplianceRecord(
-            @Valid @RequestBody ComplianceRecordRequest request) {
+    public ResponseEntity<ApiResponseDTO<ComplianceRecordResponseDTO>> createComplianceRecord(
+            @Valid @RequestBody ComplianceRecordRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Compliance record created",
+                .body(ApiResponseDTO.success("Compliance record created",
                         complianceService.createComplianceRecord(request)));
     }
 
     @GetMapping("/compliance")
     @Operation(summary = "Get all compliance records", description = "PUBLIC")
-    public ResponseEntity<ApiResponse<List<ComplianceRecordResponse>>> getAllComplianceRecords() {
-        return ResponseEntity.ok(ApiResponse.success("Compliance records retrieved",
+    public ResponseEntity<ApiResponseDTO<List<ComplianceRecordResponseDTO>>> getAllComplianceRecords() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Compliance records retrieved",
                 complianceService.getAllComplianceRecords()));
     }
 
     @GetMapping("/compliance/{complianceId}")
     @Operation(summary = "Get compliance record by ID")
-    public ResponseEntity<ApiResponse<ComplianceRecordResponse>> getComplianceRecordById(
+    public ResponseEntity<ApiResponseDTO<ComplianceRecordResponseDTO>> getComplianceRecordById(
             @PathVariable Long complianceId) {
-        return ResponseEntity.ok(ApiResponse.success("Compliance record retrieved",
+        return ResponseEntity.ok(ApiResponseDTO.success("Compliance record retrieved",
                 complianceService.getComplianceRecordById(complianceId)));
     }
 
     @GetMapping("/compliance/contract/{contractId}")
     @Operation(summary = "Get compliance records by contract")
-    public ResponseEntity<ApiResponse<List<ComplianceRecordResponse>>> getComplianceRecordsByContract(
+    public ResponseEntity<ApiResponseDTO<List<ComplianceRecordResponseDTO>>> getComplianceRecordsByContract(
             @PathVariable Long contractId) {
-        return ResponseEntity.ok(ApiResponse.success("Compliance records retrieved",
+        return ResponseEntity.ok(ApiResponseDTO.success("Compliance records retrieved",
                 complianceService.getComplianceRecordsByContract(contractId)));
     }
 }

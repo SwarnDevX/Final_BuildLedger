@@ -1,7 +1,7 @@
 package com.buildledger.service.impl;
 
-import com.buildledger.dto.request.LoginRequest;
-import com.buildledger.dto.response.LoginResponse;
+import com.buildledger.dto.request.LoginRequestDTO;
+import com.buildledger.dto.response.LoginResponseDTO;
 import com.buildledger.entity.User;
 import com.buildledger.exception.ResourceNotFoundException;
 import com.buildledger.repository.UserRepository;
@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private long jwtExpiration;
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponseDTO login(LoginRequestDTO request) {
         log.info("Login attempt for user: {}", request.getUsername());
 
         Authentication authentication = authenticationManager.authenticate(
@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User {} logged in successfully with role {}", user.getUsername(), user.getRole());
 
-        return LoginResponse.builder()
+        return LoginResponseDTO.builder()
                 .accessToken(jwt)
                 .tokenType("Bearer")
                 .expiresIn(jwtExpiration / 1000)

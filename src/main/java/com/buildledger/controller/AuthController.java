@@ -1,8 +1,8 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.LoginRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.LoginResponse;
+import com.buildledger.dto.request.LoginRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.LoginResponseDTO;
 import com.buildledger.entity.User;
 import com.buildledger.exception.ResourceNotFoundException;
 import com.buildledger.repository.UserRepository;
@@ -38,12 +38,12 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Login",
             description = "Authenticate with username and password to receive JWT token.\n\n" +
-                    "**Default credentials:** username=`admin`, password=`admin123`\n\n" +
+                    "**Default credentials:** username=`admin12`, password=`Admin@123`\n\n" +
                     "After login, copy the `accessToken` and click **Authorize 🔒** at the top → enter `Bearer <token>`")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponseDTO<LoginResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request) {
         log.info("Login request for user: {}", request.getUsername());
-        LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+        LoginResponseDTO response = authService.login(request);
+        return ResponseEntity.ok(ApiResponseDTO.success("Login successful", response));
     }
 
     @GetMapping("/me")
@@ -52,7 +52,7 @@ public class AuthController {
             description = "🔍 Shows who is currently logged in — name, username, role, status.\n\n" +
                     "Use this to confirm which user is active after clicking **Authorize 🔒**.\n\n" +
                     "**Try this first after logging in to confirm your session!**")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<ApiResponseDTO<Map<String, Object>>> getCurrentUser(Authentication authentication) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
@@ -66,7 +66,7 @@ public class AuthController {
         info.put("status", user.getStatus());
         info.put("message", "You are logged in as " + user.getRole() + " (" + user.getName() + ")");
 
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponseDTO.success(
                 "✅ Logged in as: " + user.getName() + " [" + user.getRole() + "]", info));
     }
 
@@ -94,7 +94,7 @@ public class AuthController {
             3. Call this endpoint with your temp password as `oldPassword` and your chosen password as `newPassword`.
             """
     )
-    public ResponseEntity<ApiResponse<Void>> changeVendorPassword(
+    public ResponseEntity<ApiResponseDTO<Void>> changeVendorPassword(
             Authentication authentication,
             @RequestParam
             @NotBlank(message = "Current password is required")
@@ -105,7 +105,7 @@ public class AuthController {
             String newPassword) {
 
         vendorService.changeVendorPassword(authentication.getName(), oldPassword, newPassword);
-        return ResponseEntity.ok(ApiResponse.success("Password changed successfully. Use your new password for future logins."));
+        return ResponseEntity.ok(ApiResponseDTO.success("Password changed successfully. Use your new password for future logins."));
     }
 
     // ── Vendor username update ────────────────────────────────────────────────
@@ -127,7 +127,7 @@ public class AuthController {
             **Note:** After updating your username, you must log in again using the new username.
             """
     )
-    public ResponseEntity<ApiResponse<Void>> updateVendorUsername(
+    public ResponseEntity<ApiResponseDTO<Void>> updateVendorUsername(
             Authentication authentication,
             @RequestParam
             @NotBlank(message = "New username is required")
@@ -135,6 +135,6 @@ public class AuthController {
             String newUsername) {
 
         vendorService.updateVendorUsername(authentication.getName(), newUsername);
-        return ResponseEntity.ok(ApiResponse.success("Username updated successfully. Please log in again with your new username: " + newUsername.trim().toLowerCase()));
+        return ResponseEntity.ok(ApiResponseDTO.success("Username updated successfully. Please log in again with your new username: " + newUsername.trim().toLowerCase()));
     }
 }

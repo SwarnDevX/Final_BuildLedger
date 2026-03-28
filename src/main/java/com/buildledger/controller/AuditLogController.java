@@ -1,6 +1,6 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.response.ApiResponse;
+import com.buildledger.dto.response.ApiResponseDTO;
 import com.buildledger.entity.AuditLog;
 import com.buildledger.repository.AuditLogRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,15 +25,15 @@ public class AuditLogController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all audit logs", description = "ADMIN only: View complete system audit trail")
-    public ResponseEntity<ApiResponse<List<AuditLog>>> getAllAuditLogs() {
-        return ResponseEntity.ok(ApiResponse.success("Audit logs retrieved", auditLogRepository.findAll()));
+    public ResponseEntity<ApiResponseDTO<List<AuditLog>>> getAllAuditLogs() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Audit logs retrieved", auditLogRepository.findAll()));
     }
 
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get audit logs by user")
-    public ResponseEntity<ApiResponse<List<AuditLog>>> getAuditLogsByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(ApiResponse.success("Audit logs retrieved",
+    public ResponseEntity<ApiResponseDTO<List<AuditLog>>> getAuditLogsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Audit logs retrieved",
                 auditLogRepository.findByUserId(userId)));
     }
 }

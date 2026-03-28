@@ -1,8 +1,8 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.ProjectRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.ProjectResponse;
+import com.buildledger.dto.request.ProjectRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.ProjectResponseDTO;
 import com.buildledger.enums.ProjectStatus;
 import com.buildledger.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,44 +30,44 @@ public class ProjectController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create project [ADMIN only]",
                description = "✅ ADMIN\n❌ PROJECT_MANAGER, VENDOR, CLIENT cannot create projects.")
-    public ResponseEntity<ApiResponse<ProjectResponse>> createProject(@Valid @RequestBody ProjectRequest request) {
+    public ResponseEntity<ApiResponseDTO<ProjectResponseDTO>> createProject(@Valid @RequestBody ProjectRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Project created successfully", projectService.createProject(request)));
+                .body(ApiResponseDTO.success("Project created successfully", projectService.createProject(request)));
     }
 
     @GetMapping
     @Operation(summary = "Get all projects [ALL roles]")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAllProjects() {
-        return ResponseEntity.ok(ApiResponse.success("Projects retrieved", projectService.getAllProjects()));
+    public ResponseEntity<ApiResponseDTO<List<ProjectResponseDTO>>> getAllProjects() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Projects retrieved", projectService.getAllProjects()));
     }
 
     @GetMapping("/{projectId}")
     @Operation(summary = "Get project by ID [ALL roles]")
-    public ResponseEntity<ApiResponse<ProjectResponse>> getProjectById(@PathVariable Long projectId) {
-        return ResponseEntity.ok(ApiResponse.success("Project retrieved", projectService.getProjectById(projectId)));
+    public ResponseEntity<ApiResponseDTO<ProjectResponseDTO>> getProjectById(@PathVariable Long projectId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Project retrieved", projectService.getProjectById(projectId)));
     }
 
     @GetMapping("/manager/{managerId}")
     @Operation(summary = "Get projects by manager [ALL roles]")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getProjectsByManager(@PathVariable Long managerId) {
-        return ResponseEntity.ok(ApiResponse.success("Projects retrieved", projectService.getProjectsByManager(managerId)));
+    public ResponseEntity<ApiResponseDTO<List<ProjectResponseDTO>>> getProjectsByManager(@PathVariable Long managerId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Projects retrieved", projectService.getProjectsByManager(managerId)));
     }
 
     @PutMapping("/{projectId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update project [ADMIN only]",
                description = "✅ ADMIN\n❌ PROJECT_MANAGER, VENDOR, CLIENT cannot edit projects.")
-    public ResponseEntity<ApiResponse<ProjectResponse>> updateProject(
+    public ResponseEntity<ApiResponseDTO<ProjectResponseDTO>> updateProject(
             @PathVariable Long projectId,
-            @Valid @RequestBody ProjectRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Project updated", projectService.updateProject(projectId, request)));
+            @Valid @RequestBody ProjectRequestDTO request) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Project updated", projectService.updateProject(projectId, request)));
     }
 
     @PatchMapping("/{projectId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update Project Status",
             description = "Only Admin and Project Manager can update project Status")
-    public ResponseEntity<ProjectResponse> updateProjectStatus(
+    public ResponseEntity<ProjectResponseDTO> updateProjectStatus(
             @PathVariable Long projectId,
             @RequestParam ProjectStatus newStatus) {
 
@@ -80,8 +80,8 @@ public class ProjectController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete project [ADMIN only]",
                description = "✅ ADMIN\n❌ No other role can delete projects.")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long projectId) {
+    public ResponseEntity<ApiResponseDTO<Void>> deleteProject(@PathVariable Long projectId) {
         projectService.deleteProject(projectId);
-        return ResponseEntity.ok(ApiResponse.success("Project deleted successfully"));
+        return ResponseEntity.ok(ApiResponseDTO.success("Project deleted successfully"));
     }
 }

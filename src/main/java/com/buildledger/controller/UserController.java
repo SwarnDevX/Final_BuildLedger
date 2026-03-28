@@ -1,9 +1,9 @@
 package com.buildledger.controller;
 
-import com.buildledger.dto.request.CreateUserRequest;
-import com.buildledger.dto.request.UpdateUserRequest;
-import com.buildledger.dto.response.ApiResponse;
-import com.buildledger.dto.response.UserResponse;
+import com.buildledger.dto.request.CreateUserRequestDTO;
+import com.buildledger.dto.request.UpdateUserRequestDTO;
+import com.buildledger.dto.response.ApiResponseDTO;
+import com.buildledger.dto.response.UserResponseDTO;
 import com.buildledger.enums.Role;
 import com.buildledger.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,47 +32,47 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create user", description = "ADMIN only: Create a new user with any role")
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
-        UserResponse user = userService.createUser(request);
+    public ResponseEntity<ApiResponseDTO<UserResponseDTO>> createUser(@Valid @RequestBody CreateUserRequestDTO request) {
+        UserResponseDTO user = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("User created successfully", user));
+                .body(ApiResponseDTO.success("User created successfully", user));
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all users", description = "ADMIN only: Retrieve all users")
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        return ResponseEntity.ok(ApiResponse.success("Users retrieved", userService.getAllUsers()));
+    public ResponseEntity<ApiResponseDTO<List<UserResponseDTO>>> getAllUsers() {
+        return ResponseEntity.ok(ApiResponseDTO.success("Users retrieved", userService.getAllUsers()));
     }
 
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get user by ID")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long userId) {
-        return ResponseEntity.ok(ApiResponse.success("User retrieved", userService.getUserById(userId)));
+    public ResponseEntity<ApiResponseDTO<UserResponseDTO>> getUserById(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponseDTO.success("User retrieved", userService.getUserById(userId)));
     }
 
     @GetMapping("/role/{role}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get users by role", description = "ADMIN only: Filter users by role")
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getUsersByRole(@PathVariable Role role) {
-        return ResponseEntity.ok(ApiResponse.success("Users retrieved", userService.getUsersByRole(role)));
+    public ResponseEntity<ApiResponseDTO<List<UserResponseDTO>>> getUsersByRole(@PathVariable Role role) {
+        return ResponseEntity.ok(ApiResponseDTO.success("Users retrieved", userService.getUsersByRole(role)));
     }
 
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update user", description = "ADMIN only: Update user details")
-    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+    public ResponseEntity<ApiResponseDTO<UserResponseDTO>> updateUser(
             @PathVariable Long userId,
-            @Valid @RequestBody UpdateUserRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("User updated successfully", userService.updateUser(userId, request)));
+            @Valid @RequestBody UpdateUserRequestDTO request) {
+        return ResponseEntity.ok(ApiResponseDTO.success("User updated successfully", userService.updateUser(userId, request)));
     }
 
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete user", description = "ADMIN only: Delete a user")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
-        return ResponseEntity.ok(ApiResponse.success("User deleted successfully"));
+        return ResponseEntity.ok(ApiResponseDTO.success("User deleted successfully"));
     }
 }
